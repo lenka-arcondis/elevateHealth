@@ -25,8 +25,15 @@
     /* ── Header ──────────────────────────────────────────────────── */
     header { background: var(--primary); color: #fff; padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
     header svg { flex-shrink: 0; }
+    header .header-text { flex: 1; }
     header h1 { font-size: 1.45rem; font-weight: 700; letter-spacing: .3px; }
     header p  { font-size: .88rem; opacity: .82; margin-top: 3px; }
+    .btn-how {
+      padding: 8px 18px; border: 1.5px solid rgba(255,255,255,.6); border-radius: 7px;
+      background: transparent; color: #fff; font-size: .86rem; font-weight: 600;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-how:hover { background: rgba(255,255,255,.12); }
 
     /* ── Layout ──────────────────────────────────────────────────── */
     .layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; max-width: 1280px; margin: 28px auto; padding: 0 24px; }
@@ -41,14 +48,15 @@
 
     /* ── Sliders ─────────────────────────────────────────────────── */
     .param { margin-bottom: 18px; }
-    .param label { display: flex; justify-content: space-between; align-items: baseline; font-size: .88rem; font-weight: 600; margin-bottom: 6px; }
+    .param label { display: flex; justify-content: space-between; align-items: center; font-size: .88rem; font-weight: 600; margin-bottom: 6px; }
+    .param label .lhs { display: flex; align-items: center; gap: 5px; }
     .param label span.val { font-weight: 700; color: var(--accent); font-size: .95rem; min-width: 52px; text-align: right; }
     .param input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
     .param .hint { font-size: .78rem; color: var(--muted); margin-top: 3px; }
 
     /* ── Select / number inputs ──────────────────────────────────── */
     .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 4px; }
+    .field label { display: flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 600; margin-bottom: 4px; }
     .field select,
     .field input[type=number] { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: .92rem; color: var(--text); background: #fff; }
     .field select:focus,
@@ -69,7 +77,7 @@
 
     .kpi { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-top: 4px solid var(--accent); }
     .kpi.green { border-top-color: var(--green); }
-    .kpi .label { font-size: .76rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .kpi .label { font-size: .76rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; display: flex; align-items: center; gap: 4px; }
     .kpi .value { font-size: 1.55rem; font-weight: 800; color: var(--primary); line-height: 1.2; margin-top: 4px; }
     .kpi .sub   { font-size: .78rem; color: var(--muted); margin-top: 2px; }
     .kpi .delta { font-size: .82rem; font-weight: 700; margin-top: 4px; }
@@ -91,14 +99,111 @@
     .mm-card.micro .mm-tag { background: #d6eaf8; color: var(--accent); }
     .mm-card.macro .mm-tag { background: #d5f5e3; color: var(--green); }
     .mm-value  { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
-    .mm-label  { font-size: .88rem; color: var(--muted); margin-top: 6px; font-weight: 600; }
+    .mm-label  { font-size: .88rem; color: var(--muted); margin-top: 6px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
     .mm-detail { font-size: .80rem; color: var(--muted); margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; line-height: 1.5; }
+
+    /* ── Tooltip button ──────────────────────────────────────────── */
+    .tip-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: var(--border); color: var(--muted);
+      font-size: 9px; font-weight: 800; font-family: inherit;
+      cursor: pointer; border: none; flex-shrink: 0; line-height: 1;
+    }
+    .tip-btn:hover { background: var(--accent); color: #fff; }
+
+    /* ── Global tooltip box ──────────────────────────────────────── */
+    #global-tipbox {
+      display: none; position: absolute; z-index: 300;
+      background: #fff; border: 1px solid var(--border); border-radius: 8px;
+      padding: 11px 14px; font-size: .82rem; color: var(--text);
+      line-height: 1.55; max-width: 260px;
+      box-shadow: 0 4px 18px rgba(0,0,0,.12);
+    }
+    #global-tipbox.visible { display: block; }
+
+    /* ── Modal ───────────────────────────────────────────────────── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.48); z-index: 500;
+      align-items: flex-start; justify-content: center;
+      padding: 40px 16px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 12px;
+      max-width: 680px; width: 100%;
+      padding: 36px 40px; position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 18px;
+      background: none; border: none; font-size: 1.4rem; color: var(--muted); cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-box h2 { font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 20px; }
+    .modal-box h3 { font-size: .92rem; font-weight: 700; color: var(--primary); margin: 22px 0 8px; }
+    .modal-box p  { font-size: .88rem; color: var(--text); line-height: 1.65; margin-bottom: 10px; }
+    .modal-box ul { padding-left: 18px; margin-bottom: 10px; }
+    .modal-box li { font-size: .88rem; color: var(--text); line-height: 1.65; margin-bottom: 6px; }
+    .modal-box li b { color: var(--primary); }
+    .modal-disclaimer {
+      margin-top: 24px; padding: 14px 16px; background: #fef9e7;
+      border: 1px solid #f9e79f; border-radius: 8px;
+      font-size: .82rem; color: #7d6608; line-height: 1.55;
+    }
 
     /* ── Footer ──────────────────────────────────────────────────── */
     footer { text-align: center; font-size: .78rem; color: var(--muted); padding: 24px 16px 32px; }
   </style>
 </head>
 <body>
+
+<!-- ── Global tooltip ──────────────────────────────────────────────────── -->
+<div id="global-tipbox"></div>
+
+<!-- ── How it works modal ──────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="document.getElementById('modal-overlay').classList.remove('open')">&times;</button>
+    <h2>How this tool works</h2>
+
+    <h3>What it does</h3>
+    <p>The CVD Population Health Impact Simulator estimates how many deaths and life-years a cardiovascular intervention can prevent in a defined population. You set the size and profile of the group, choose a time horizon, and specify how much the intervention reduces CVD mortality. The tool instantly shows the difference between a world with and without the intervention.</p>
+
+    <h3>The simulation model</h3>
+    <p>The calculator runs a cohort simulation: it follows a group of people who all start at the same age, and in each annual "cycle" applies age-specific death rates to calculate how many survive to the next year. This is the same fundamental approach used in formal health economic evaluations (Markov cohort models). Two arms run in parallel — one with the intervention, one without — so every output is a direct comparison.</p>
+
+    <h3>Data sources</h3>
+    <ul>
+      <li><b>Mortality rates</b> come from the Human Mortality Database (HMD), the internationally recognised standard for life table data. We use 2023 period life tables for Sweden and Finland, with separate rates for men and women blended according to your % Female input.</li>
+      <li><b>CVD event rates</b> are based on ischaemic heart disease (IHD) incidence from the Swedish disease registry. These rates are used as a proxy for both countries. A 10% case fatality rate is applied to estimate how many events result in death.</li>
+    </ul>
+
+    <h3>What each output means</h3>
+    <ul>
+      <li><b>CVD Events (Baseline):</b> The number of heart disease events expected in the untreated group over the chosen time horizon — giving you a sense of the scale of the problem.</li>
+      <li><b>Deaths Avoided:</b> The difference in total deaths between the untreated and treated groups. This is the primary measure of the intervention's mortality benefit.</li>
+      <li><b>Life-years Preserved:</b> The total extra years of life gained across everyone in the population. If 1,000 people each live one extra year, that is 1,000 life-years preserved.</li>
+      <li><b>Life Expectancy Gain:</b> The average extra time each person gains — expressed in years or months depending on the size of the effect.</li>
+      <li><b>Micro — Individual survival gain:</b> The improvement in the probability that a single person survives to the end of the time horizon. This is the most personally meaningful number for a patient or clinician.</li>
+      <li><b>Macro — Population life-years:</b> The total life-years preserved at population scale — the number most relevant to payers and public health decision-makers.</li>
+    </ul>
+
+    <h3>Inputs explained</h3>
+    <ul>
+      <li><b>Country:</b> Selects which mortality rates are used. Finnish men have higher cardiovascular mortality than Swedish men at the same age.</li>
+      <li><b>Population size:</b> The number of people in the simulated group. Larger populations produce bigger absolute numbers, but per-person gains stay the same.</li>
+      <li><b>Age band:</b> The age at which the cohort starts. CVD risk rises sharply with age, so older cohorts see larger absolute benefits from the same relative reduction.</li>
+      <li><b>% Female:</b> Blends male and female mortality rates. Women have lower CVD mortality than men at the same age.</li>
+      <li><b>Time horizon:</b> How many years the simulation runs. Longer horizons accumulate more benefit.</li>
+      <li><b>CVD Mortality Reduction:</b> The intervention's effect — a 20% reduction means 20 fewer CVD deaths for every 100 that would have occurred without treatment.</li>
+    </ul>
+
+    <div class="modal-disclaimer">
+      <b>Limitations:</b> The intervention effect is applied uniformly across all ages and sexes. CVD incidence data is from 1997 and does not reflect current rates, which have declined significantly. The model does not account for competing risks, comorbidities, or treatment drop-off. All outputs are for illustrative and research purposes only and should not be used for clinical or policy decisions without independent validation.
+    </div>
+  </div>
+</div>
 
 <!-- ── Header ──────────────────────────────────────────────────────────── -->
 <header>
@@ -109,10 +214,13 @@
     <circle cx="29" cy="9" r="5" fill="rgba(255,255,255,.15)" stroke="#fff" stroke-width="1.6"/>
     <path d="M27 9h4M29 7v4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
   </svg>
-  <div>
+  <div class="header-text">
     <h1>CVD Population Health Impact Simulator</h1>
     <p>Life-table cohort model · Sweden / Finland · IHD incidence · Illustrative demo</p>
   </div>
+  <button class="btn-how" onclick="document.getElementById('modal-overlay').classList.add('open')">
+    ? &nbsp;How this works
+  </button>
 </header>
 
 <!-- ── Main layout ─────────────────────────────────────────────────────── -->
@@ -126,7 +234,7 @@
       <div class="section-title">Reference Population</div>
 
       <div class="field">
-        <label for="inp-country">Country</label>
+        <label for="inp-country">Country <button class="tip-btn" onclick="showTip('country',this)">?</button></label>
         <select id="inp-country" onchange="recalc()">
           <option value="SWE">Sweden</option>
           <option value="FIN">Finland</option>
@@ -134,12 +242,12 @@
       </div>
 
       <div class="field">
-        <label for="inp-popsize">Population size</label>
+        <label for="inp-popsize">Population size <button class="tip-btn" onclick="showTip('popsize',this)">?</button></label>
         <input type="number" id="inp-popsize" value="100000" min="1000" max="10000000" step="1000" oninput="recalc()">
       </div>
 
       <div class="field">
-        <label for="inp-ageband">Age band (cohort start)</label>
+        <label for="inp-ageband">Age band (cohort start) <button class="tip-btn" onclick="showTip('ageband',this)">?</button></label>
         <select id="inp-ageband" onchange="recalc()">
           <option value="30">30–34</option>
           <option value="35">35–39</option>
@@ -156,13 +264,16 @@
       </div>
 
       <div class="param">
-        <label>% Female <span class="val" id="v-female">50 %</span></label>
+        <label>
+          <span class="lhs">% Female <button class="tip-btn" onclick="showTip('female',this)">?</button></span>
+          <span class="val" id="v-female">50 %</span>
+        </label>
         <input type="range" id="inp-female" min="0" max="100" step="1" value="50"
                oninput="updateSlider('female', this.value)">
         <div class="hint">Blends male &amp; female mortality rates</div>
       </div>
 
-      <div class="section-title">Time Horizon</div>
+      <div class="section-title">Time Horizon <button class="tip-btn" style="vertical-align:middle" onclick="showTip('horizon',this)">?</button></div>
 
       <div class="horizon-group">
         <button class="horizon-btn"        onclick="setHorizon(1,  this)">1 yr</button>
@@ -173,7 +284,10 @@
       <div class="section-title">Intervention</div>
 
       <div class="param">
-        <label>CVD Mortality Reduction <span class="val" id="v-mortred">20 %</span></label>
+        <label>
+          <span class="lhs">CVD Mortality Reduction <button class="tip-btn" onclick="showTip('mortred',this)">?</button></span>
+          <span class="val" id="v-mortred">20 %</span>
+        </label>
         <input type="range" id="inp-mortred" min="0" max="60" step="1" value="20"
                oninput="updateSlider('mortred', this.value)">
         <div class="hint">Relative reduction in CVD-attributable deaths</div>
@@ -189,23 +303,23 @@
     <!-- KPI strip -->
     <div class="kpi-strip">
       <div class="kpi">
-        <div class="label">CVD Events (Baseline)</div>
+        <div class="label">CVD Events (Baseline) <button class="tip-btn" onclick="showTip('k-events',this)">?</button></div>
         <div class="value" id="k-events">—</div>
-        <div class="sub" id="k-events-sub">over horizon</div>
+        <div class="sub"   id="k-events-sub">over horizon</div>
       </div>
       <div class="kpi green">
-        <div class="label">Deaths Avoided</div>
+        <div class="label">Deaths Avoided <button class="tip-btn" onclick="showTip('k-deaths',this)">?</button></div>
         <div class="value" id="k-deaths">—</div>
         <div class="sub">with intervention</div>
         <div class="delta" id="k-deaths-pct"></div>
       </div>
       <div class="kpi">
-        <div class="label">Life-years Preserved</div>
+        <div class="label">Life-years Preserved <button class="tip-btn" onclick="showTip('k-ly',this)">?</button></div>
         <div class="value" id="k-ly">—</div>
         <div class="sub">population total</div>
       </div>
       <div class="kpi green">
-        <div class="label">Life Expectancy Gain</div>
+        <div class="label">Life Expectancy Gain <button class="tip-btn" onclick="showTip('k-sg',this)">?</button></div>
         <div class="value" id="k-sg">—</div>
         <div class="sub">per person</div>
         <div class="delta" id="k-sg-note"></div>
@@ -226,13 +340,13 @@
       <div class="mm-card micro">
         <span class="mm-tag">Micro</span>
         <div class="mm-value"  id="mm-micro-val">—</div>
-        <div class="mm-label">Individual survival probability gain</div>
+        <div class="mm-label">Individual survival probability gain <button class="tip-btn" onclick="showTip('mm-micro',this)">?</button></div>
         <div class="mm-detail" id="mm-micro-detail"></div>
       </div>
       <div class="mm-card macro">
         <span class="mm-tag">Macro</span>
         <div class="mm-value"  id="mm-macro-val">—</div>
-        <div class="mm-label">Population life-years preserved</div>
+        <div class="mm-label">Population life-years preserved <button class="tip-btn" onclick="showTip('mm-macro',this)">?</button></div>
         <div class="mm-detail" id="mm-macro-detail"></div>
       </div>
     </div>
@@ -246,9 +360,58 @@
 </footer>
 
 <script>
+// ── Tooltip content ───────────────────────────────────────────────────────────
+const TIPS = {
+  country:   "Selects which country's death rates to use. Sweden and Finland have different mortality profiles — Finnish men have somewhat higher cardiovascular mortality than Swedish men at the same age.",
+  popsize:   "The number of people in the simulated group. Larger populations produce bigger absolute numbers, but the per-person gains stay the same regardless of size.",
+  ageband:   "The age at which the cohort starts the simulation. CVD risk rises sharply with age, so older cohorts see larger absolute benefits from the same relative reduction.",
+  female:    "Blends male and female mortality rates. Women generally have lower CVD mortality than men at the same age, so higher % female will show fewer events in the baseline.",
+  horizon:   "How many years the simulation runs. Longer time horizons let more of the intervention benefit accumulate — especially important for life-years and life expectancy calculations.",
+  mortred:   "The intervention's effect on CVD deaths. A 20% reduction means that for every 100 CVD deaths that would have happened without treatment, 20 are prevented. This applies only to CVD-attributable deaths — background mortality is unchanged.",
+  "k-events":"Total new heart disease events (such as heart attacks) expected in the untreated group over the time horizon. Gives you a sense of the scale of the disease burden.",
+  "k-deaths":"How many fewer deaths occur in the intervention group compared to no intervention, across the whole time horizon. The primary measure of the intervention's mortality benefit.",
+  "k-ly":    "The total extra years of life gained across the whole population. If 500 people each live an extra 2 years, that is 1,000 life-years preserved.",
+  "k-sg":    "On average, how many extra years — or months — each person in the cohort gains. Calculated as total life-years preserved divided by population size.",
+  "mm-micro":"The probability that a single individual in this cohort survives to the end of the time horizon is this many percentage points higher with the intervention than without it. This is what the intervention means for one person.",
+  "mm-macro":"The total life-years preserved at population scale — the societal value of the intervention. This is the number most relevant to payers and public health decision-makers.",
+};
+
+// ── Tooltip logic ─────────────────────────────────────────────────────────────
+let activeTipId = null;
+
+function showTip(id, btn) {
+  const box = document.getElementById('global-tipbox');
+  if (activeTipId === id) { hideTip(); return; }
+  box.textContent = TIPS[id] || '';
+  box.classList.add('visible');
+  activeTipId = id;
+  const r = btn.getBoundingClientRect();
+  const top = r.bottom + window.scrollY + 6;
+  const left = Math.min(Math.max(r.left + window.scrollX - 10, 8), window.innerWidth - 276);
+  box.style.top  = top  + 'px';
+  box.style.left = left + 'px';
+}
+
+function hideTip() {
+  document.getElementById('global-tipbox').classList.remove('visible');
+  activeTipId = null;
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.classList.contains('tip-btn') && !e.target.closest('#global-tipbox')) hideTip();
+});
+
+// ── Modal logic ───────────────────────────────────────────────────────────────
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('open');
+});
+
 // ── Embedded life table data: qx (annual probability of death) ─────────────────
 // Source: Human Mortality Database, period life tables, 2023
-
 const LIFE_TABLES = {
   SWE: {
     M: {30:0.00063,31:0.00063,32:0.00078,33:0.00053,34:0.00078,35:0.00073,36:0.00076,
@@ -292,31 +455,22 @@ const LIFE_TABLES = {
   }
 };
 
-// ── Embedded CVD incidence data: IHD (S002) per 100,000 person-years ──────────
-// Source: Swedish disease registry 1997 — used as proxy for both SWE and FIN
+// ── Embedded CVD incidence: IHD (S002) per 100,000 person-years ──────────────
+// Source: Swedish disease registry 1997 — proxy for both SWE and FIN
 const CVD_IHD_M = [[30,88.63],[35,143.77],[40,247.08],[45,368.04],[50,655.50],
                    [55,1273.65],[60,2328.11],[65,4450.40],[70,7207.98],[75,10911.80],[80,17086.26]];
 const CVD_IHD_F = [[30,76.73],[35,141.58],[40,230.50],[45,439.08],[50,898.88],
                    [55,1371.31],[60,2308.11],[65,3825.08],[70,6108.66],[75,8685.12],[80,12224.54]];
 
-// IHD case fatality rate — fraction of IHD events that result in death
-const CFR = 0.10;
+const CFR = 0.10; // IHD case fatality rate
 
 // ── Model parameters ──────────────────────────────────────────────────────────
-const PARAMS = {
-  country: 'SWE',
-  popSize: 100000,
-  ageBand: 50,
-  female:  50,
-  horizon: 5,
-  mortred: 20,
-};
+const PARAMS = { country:'SWE', popSize:100000, ageBand:50, female:50, horizon:5, mortred:20 };
 
 // ── Data helpers ──────────────────────────────────────────────────────────────
 function getQx(country, sex, age) {
   const a = Math.min(Math.max(Math.round(age), 30), 90);
-  const tbl = LIFE_TABLES[country][sex];
-  return tbl[a] ?? tbl[90];
+  return LIFE_TABLES[country][sex][a] ?? LIFE_TABLES[country][sex][90];
 }
 
 function getCVDRate(sex, age) {
@@ -330,73 +484,66 @@ function getCVDRate(sex, age) {
 
 function blendedQx(country, female, age) {
   const f = female / 100;
-  return getQx(country, 'M', age) * (1 - f) + getQx(country, 'F', age) * f;
+  return getQx(country,'M',age) * (1-f) + getQx(country,'F',age) * f;
 }
 
 function blendedCVDRate(female, age) {
   const f = female / 100;
-  return getCVDRate('M', age) * (1 - f) + getCVDRate('F', age) * f;
+  return getCVDRate('M',age) * (1-f) + getCVDRate('F',age) * f;
 }
 
 // ── Simulation engine (pure function) ─────────────────────────────────────────
 function simulate({ country, popSize, ageBand, female, horizon, mortred }) {
-  const startAge = ageBand + 2; // midpoint of 5-year band
+  const startAge = ageBand + 2;
   const eff = mortred / 100;
-
-  const base = { survivors: [popSize], cvdEvents: [], deaths: [] };
-  const intv = { survivors: [popSize], cvdEvents: [], deaths: [] };
+  const base = { survivors:[popSize], cvdEvents:[], deaths:[] };
+  const intv = { survivors:[popSize], cvdEvents:[], deaths:[] };
 
   for (let t = 0; t < horizon; t++) {
     const age     = Math.min(startAge + t, 90);
     const qx      = blendedQx(country, female, age);
     const cvdRate = blendedCVDRate(female, age);
-    // fraction of all-cause deaths attributable to CVD (capped at 90%)
     const cvdFrac = Math.min((cvdRate / 100000 * CFR) / qx, 0.90);
 
-    // baseline
     const bN = base.survivors[t];
     base.cvdEvents.push(bN * cvdRate / 100000);
-    const bDeaths = bN * qx;
-    base.deaths.push(bDeaths);
-    base.survivors.push(bN - bDeaths);
+    base.deaths.push(bN * qx);
+    base.survivors.push(bN - bN * qx);
 
-    // intervention: CVD events reduced, CVD deaths reduced by eff
     const iN = intv.survivors[t];
     intv.cvdEvents.push(iN * cvdRate / 100000 * (1 - eff));
     const iDeaths = iN * qx * (1 - cvdFrac * eff);
     intv.deaths.push(iDeaths);
     intv.survivors.push(iN - iDeaths);
   }
-
   return { base, intv };
 }
 
 // ── Formatting ────────────────────────────────────────────────────────────────
 function fmtInt(n) { return Math.round(n).toLocaleString('en-US'); }
-function fmt(n, d = 2) { return (+n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function fmt(n, d=2) { return (+n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
 function fmtK(n) {
-  const v = Math.abs(n), s = n < 0 ? '−' : '';
-  if (v >= 1e6) return s + fmt(v / 1e6, 2) + 'M';
-  if (v >= 1e3) return s + fmt(v / 1e3,  1) + 'k';
-  return s + fmtInt(v);
+  const v=Math.abs(n), s=n<0?'−':'';
+  if(v>=1e6) return s+fmt(v/1e6,2)+'M';
+  if(v>=1e3) return s+fmt(v/1e3,1)+'k';
+  return s+fmtInt(v);
 }
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ── Chart state ───────────────────────────────────────────────────────────────
 let currentTab = 'survivors';
 let lastResults = null;
 
 // ── Main recalc ───────────────────────────────────────────────────────────────
 function recalc() {
   PARAMS.country = document.getElementById('inp-country').value;
-  PARAMS.popSize = Math.max(+document.getElementById('inp-popsize').value || 100000, 1);
+  PARAMS.popSize = Math.max(+document.getElementById('inp-popsize').value||100000, 1);
   PARAMS.ageBand = +document.getElementById('inp-ageband').value;
 
   const { base, intv } = simulate(PARAMS);
   lastResults = { base, intv };
 
-  const H = PARAMS.horizon;
-  const N = PARAMS.popSize;
-  const sum = a => a.reduce((s, v) => s + v, 0);
+  const H=PARAMS.horizon, N=PARAMS.popSize;
+  const sum = a => a.reduce((s,v)=>s+v,0);
 
   const totalCVDBase  = sum(base.cvdEvents);
   const totalDBase    = sum(base.deaths);
@@ -407,90 +554,80 @@ function recalc() {
   const lyPreserved   = lyInt - lyBase;
   const dSurv         = intv.survivors[H] - base.survivors[H];
   const survGainPct   = dSurv / N * 100;
+  const leGainYrs     = lyPreserved / N;
+  const leDisplay     = leGainYrs >= 1 ? '+'+fmt(leGainYrs,2)+' yrs' : '+'+fmt(leGainYrs*12,1)+' mo';
 
-  // KPIs
   document.getElementById('k-events').textContent     = fmtK(totalCVDBase);
-  document.getElementById('k-events-sub').textContent = `over ${H} yr${H > 1 ? 's' : ''}`;
+  document.getElementById('k-events-sub').textContent = `over ${H} yr${H>1?'s':''}`;
   document.getElementById('k-deaths').textContent     = fmtK(deathsAvoided);
   document.getElementById('k-deaths-pct').innerHTML   =
-    `<span class="pos">▼ ${fmt(deathsAvoided / totalDBase * 100, 1)}% vs baseline</span>`;
+    `<span class="pos">▼ ${fmt(deathsAvoided/totalDBase*100,1)}% vs baseline</span>`;
   document.getElementById('k-ly').textContent         = fmtK(lyPreserved);
-  const leGainYrs = lyPreserved / N;
-  const leDisplay = leGainYrs >= 1
-    ? '+' + fmt(leGainYrs, 2) + ' yrs'
-    : '+' + fmt(leGainYrs * 12, 1) + ' mo';
-  document.getElementById('k-sg').textContent    = leDisplay;
-  document.getElementById('k-sg-note').innerHTML =
+  document.getElementById('k-sg').textContent         = leDisplay;
+  document.getElementById('k-sg-note').innerHTML      =
     `<span class="pos">+${fmtInt(dSurv)}</span> additional survivors`;
 
-  // Micro / Macro
-  document.getElementById('mm-micro-val').textContent  = '+' + fmt(survGainPct, 2) + ' pp';
+  document.getElementById('mm-micro-val').textContent  = '+'+fmt(survGainPct,2)+' pp';
   document.getElementById('mm-micro-detail').textContent =
-    `A person in this cohort has a ${fmt(survGainPct, 2)} percentage-point higher probability ` +
+    `A person in this cohort has a ${fmt(survGainPct,2)} percentage-point higher probability `+
     `of surviving the ${H}-year horizon with the intervention than without it.`;
 
   document.getElementById('mm-macro-val').textContent  = fmtK(lyPreserved);
   document.getElementById('mm-macro-detail').textContent =
-    `${fmtInt(Math.round(lyPreserved))} life-years preserved across a population of ` +
-    `${fmtInt(N)} over ${H} year${H > 1 ? 's' : ''} — equivalent to ` +
-    `${fmt(lyPreserved / N, 2)} life-years per person.`;
+    `${fmtInt(Math.round(lyPreserved))} life-years preserved across a population of `+
+    `${fmtInt(N)} over ${H} year${H>1?'s':''}  — equivalent to `+
+    `${fmt(leGainYrs,2)} life-years per person.`;
 
   renderChart(currentTab, base, intv);
 }
 
 // ── Charts ────────────────────────────────────────────────────────────────────
 function showTab(tab, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   currentTab = tab;
   if (lastResults) renderChart(tab, lastResults.base, lastResults.intv);
 }
 
 function renderChart(tab, base, intv) {
-  const H      = PARAMS.horizon;
+  const H = PARAMS.horizon;
   const layout = {
-    margin: { t: 20, b: 50, l: 65, r: 20 },
-    legend: { orientation: 'h', y: -0.2, font: { size: 11 } },
-    xaxis:  { title: 'Year', tickfont: { size: 11 } },
-    yaxis:  { tickfont: { size: 11 } },
-    plot_bgcolor:  '#fff',
-    paper_bgcolor: '#fff',
-    font: { family: 'Segoe UI, system-ui, sans-serif' },
+    margin:{t:20,b:50,l:65,r:20},
+    legend:{orientation:'h',y:-0.2,font:{size:11}},
+    xaxis:{title:'Year',tickfont:{size:11}},
+    yaxis:{tickfont:{size:11}},
+    plot_bgcolor:'#fff', paper_bgcolor:'#fff',
+    font:{family:'Segoe UI, system-ui, sans-serif'},
   };
-  const cfg = { responsive: true, displayModeBar: false };
+  const cfg = {responsive:true,displayModeBar:false};
 
   if (tab === 'survivors') {
-    const yrs = Array.from({ length: H + 1 }, (_, i) => i);
-    Plotly.react('chart-area', [
-      { name: 'Baseline', x: yrs, y: base.survivors,
-        type: 'scatter', mode: 'lines', line: { color: '#c0392b', dash: 'dot',   width: 2   } },
-      { name: 'With Intervention', x: yrs, y: intv.survivors,
-        type: 'scatter', mode: 'lines', line: { color: '#1e8449', dash: 'solid', width: 2.5 } },
-    ], { ...layout, yaxis: { ...layout.yaxis, title: 'Survivors' } }, cfg);
+    const yrs = Array.from({length:H+1},(_,i)=>i);
+    Plotly.react('chart-area',[
+      {name:'Baseline', x:yrs, y:base.survivors, type:'scatter', mode:'lines', line:{color:'#c0392b',dash:'dot',width:2}},
+      {name:'With Intervention', x:yrs, y:intv.survivors, type:'scatter', mode:'lines', line:{color:'#1e8449',dash:'solid',width:2.5}},
+    ],{...layout,yaxis:{...layout.yaxis,title:'Survivors'}},cfg);
   } else {
-    const yrs = Array.from({ length: H }, (_, i) => i + 1);
-    let cumBase = 0, cumInt = 0;
-    const yCumBase = base.cvdEvents.map(v => (cumBase += v));
-    const yCumInt  = intv.cvdEvents.map(v => (cumInt  += v));
-    Plotly.react('chart-area', [
-      { name: 'Baseline', x: yrs, y: yCumBase,
-        type: 'scatter', mode: 'lines', line: { color: '#c0392b', dash: 'dot',   width: 2   } },
-      { name: 'With Intervention', x: yrs, y: yCumInt,
-        type: 'scatter', mode: 'lines', line: { color: '#1e8449', dash: 'solid', width: 2.5 } },
-    ], { ...layout, yaxis: { ...layout.yaxis, title: 'Cumulative CVD Events' } }, cfg);
+    const yrs = Array.from({length:H},(_,i)=>i+1);
+    let cb=0, ci=0;
+    const yCumBase = base.cvdEvents.map(v=>(cb+=v));
+    const yCumInt  = intv.cvdEvents.map(v=>(ci+=v));
+    Plotly.react('chart-area',[
+      {name:'Baseline', x:yrs, y:yCumBase, type:'scatter', mode:'lines', line:{color:'#c0392b',dash:'dot',width:2}},
+      {name:'With Intervention', x:yrs, y:yCumInt, type:'scatter', mode:'lines', line:{color:'#1e8449',dash:'solid',width:2.5}},
+    ],{...layout,yaxis:{...layout.yaxis,title:'Cumulative CVD Events'}},cfg);
   }
 }
 
 // ── Control handlers ──────────────────────────────────────────────────────────
 function updateSlider(key, raw) {
-  const v = parseFloat(raw);
-  PARAMS[key] = v;
-  document.getElementById('v-' + key).textContent = v + ' %';
+  PARAMS[key] = parseFloat(raw);
+  document.getElementById('v-'+key).textContent = raw+' %';
   recalc();
 }
 
 function setHorizon(h, el) {
-  document.querySelectorAll('.horizon-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.horizon-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   PARAMS.horizon = h;
   recalc();
@@ -504,12 +641,11 @@ function resetDefaults() {
   document.getElementById('inp-mortred').value = 20;
   document.getElementById('v-female').textContent  = '50 %';
   document.getElementById('v-mortred').textContent = '20 %';
-  document.querySelectorAll('.horizon-btn').forEach((b, i) => b.classList.toggle('active', i === 1));
-  Object.assign(PARAMS, { country:'SWE', popSize:100000, ageBand:50, female:50, horizon:5, mortred:20 });
+  document.querySelectorAll('.horizon-btn').forEach((b,i)=>b.classList.toggle('active',i===1));
+  Object.assign(PARAMS,{country:'SWE',popSize:100000,ageBand:50,female:50,horizon:5,mortred:20});
   recalc();
 }
 
-// Initial render
 recalc();
 </script>
 </body>

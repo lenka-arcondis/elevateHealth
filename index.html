@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CVD Population Health Impact Simulator</title>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:  #1a5276;
+      --accent:   #2e86c1;
+      --light-bg: #f4f6f8;
+      --card-bg:  #ffffff;
+      --border:   #dce3ea;
+      --text:     #1c2833;
+      --muted:    #5d6d7e;
+      --green:    #1e8449;
+      --red:      #c0392b;
+    }
+
+    body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--light-bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    header { background: var(--primary); color: #fff; padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+    header svg { flex-shrink: 0; }
+    header h1 { font-size: 1.45rem; font-weight: 700; letter-spacing: .3px; }
+    header p  { font-size: .88rem; opacity: .82; margin-top: 3px; }
+
+    /* ── Layout ──────────────────────────────────────────────────── */
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; max-width: 1280px; margin: 28px auto; padding: 0 24px; }
+    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+    /* ── Card ────────────────────────────────────────────────────── */
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 22px 24px; }
+    .card h2 { font-size: 1rem; font-weight: 700; color: var(--primary); margin-bottom: 18px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+
+    /* ── Section labels ──────────────────────────────────────────── */
+    .section-title { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 22px 0 10px; }
+
+    /* ── Sliders ─────────────────────────────────────────────────── */
+    .param { margin-bottom: 18px; }
+    .param label { display: flex; justify-content: space-between; align-items: baseline; font-size: .88rem; font-weight: 600; margin-bottom: 6px; }
+    .param label span.val { font-weight: 700; color: var(--accent); font-size: .95rem; min-width: 52px; text-align: right; }
+    .param input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .param .hint { font-size: .78rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── Select / number inputs ──────────────────────────────────── */
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: .82rem; font-weight: 600; margin-bottom: 4px; }
+    .field select,
+    .field input[type=number] { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: .92rem; color: var(--text); background: #fff; }
+    .field select:focus,
+    .field input[type=number]:focus { outline: 2px solid var(--accent); border-color: transparent; }
+
+    /* ── Horizon toggle ──────────────────────────────────────────── */
+    .horizon-group { display: flex; gap: 8px; }
+    .horizon-btn { flex: 1; padding: 7px 4px; border: 1px solid var(--border); border-radius: 6px; background: var(--light-bg); color: var(--muted); font-size: .88rem; font-weight: 600; cursor: pointer; }
+    .horizon-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── Reset ───────────────────────────────────────────────────── */
+    .btn-reset { width: 100%; padding: 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--light-bg); color: var(--muted); font-size: .88rem; cursor: pointer; margin-top: 8px; }
+    .btn-reset:hover { background: var(--border); }
+
+    /* ── KPI strip ───────────────────────────────────────────────── */
+    .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .kpi-strip { grid-template-columns: repeat(2,1fr); } }
+
+    .kpi { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; border-top: 4px solid var(--accent); }
+    .kpi.green { border-top-color: var(--green); }
+    .kpi .label { font-size: .76rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .kpi .value { font-size: 1.55rem; font-weight: 800; color: var(--primary); line-height: 1.2; margin-top: 4px; }
+    .kpi .sub   { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+    .kpi .delta { font-size: .82rem; font-weight: 700; margin-top: 4px; }
+    .pos { color: var(--green); }
+    .neg { color: var(--red); }
+
+    /* ── Chart tabs ──────────────────────────────────────────────── */
+    .chart-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+    .tab { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); font-size: .84rem; font-weight: 600; cursor: pointer; background: var(--light-bg); color: var(--muted); }
+    .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    #chart-area { width: 100%; min-height: 340px; }
+
+    /* ── Micro / Macro cards ─────────────────────────────────────── */
+    .mm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+    @media (max-width: 640px) { .mm-grid { grid-template-columns: 1fr; } }
+
+    .mm-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; }
+    .mm-tag { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 12px; }
+    .mm-card.micro .mm-tag { background: #d6eaf8; color: var(--accent); }
+    .mm-card.macro .mm-tag { background: #d5f5e3; color: var(--green); }
+    .mm-value  { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+    .mm-label  { font-size: .88rem; color: var(--muted); margin-top: 6px; font-weight: 600; }
+    .mm-detail { font-size: .80rem; color: var(--muted); margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; line-height: 1.5; }
+
+    /* ── Footer ──────────────────────────────────────────────────── */
+    footer { text-align: center; font-size: .78rem; color: var(--muted); padding: 24px 16px 32px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+    <circle cx="18" cy="18" r="18" fill="rgba(255,255,255,.15)"/>
+    <path d="M5 26 C8 20 11 23 14 17 C17 11 19 21 21 15 C23 9 25 19 31 15"
+          stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="29" cy="9" r="5" fill="rgba(255,255,255,.15)" stroke="#fff" stroke-width="1.6"/>
+    <path d="M27 9h4M29 7v4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>
+  <div>
+    <h1>CVD Population Health Impact Simulator</h1>
+    <p>Life-table cohort model · Sweden / Finland · IHD incidence · Illustrative demo</p>
+  </div>
+</header>
+
+<!-- ── Main layout ─────────────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- LEFT: controls -->
+  <aside>
+    <div class="card">
+      <h2>Population &amp; Scenario</h2>
+
+      <div class="section-title">Reference Population</div>
+
+      <div class="field">
+        <label for="inp-country">Country</label>
+        <select id="inp-country" onchange="recalc()">
+          <option value="SWE">Sweden</option>
+          <option value="FIN">Finland</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="inp-popsize">Population size</label>
+        <input type="number" id="inp-popsize" value="100000" min="1000" max="10000000" step="1000" oninput="recalc()">
+      </div>
+
+      <div class="field">
+        <label for="inp-ageband">Age band (cohort start)</label>
+        <select id="inp-ageband" onchange="recalc()">
+          <option value="30">30–34</option>
+          <option value="35">35–39</option>
+          <option value="40">40–44</option>
+          <option value="45">45–49</option>
+          <option value="50" selected>50–54</option>
+          <option value="55">55–59</option>
+          <option value="60">60–64</option>
+          <option value="65">65–69</option>
+          <option value="70">70–74</option>
+          <option value="75">75–79</option>
+          <option value="80">80–84</option>
+        </select>
+      </div>
+
+      <div class="param">
+        <label>% Female <span class="val" id="v-female">50 %</span></label>
+        <input type="range" id="inp-female" min="0" max="100" step="1" value="50"
+               oninput="updateSlider('female', this.value)">
+        <div class="hint">Blends male &amp; female mortality rates</div>
+      </div>
+
+      <div class="section-title">Time Horizon</div>
+
+      <div class="horizon-group">
+        <button class="horizon-btn"        onclick="setHorizon(1,  this)">1 yr</button>
+        <button class="horizon-btn active" onclick="setHorizon(5,  this)">5 yrs</button>
+        <button class="horizon-btn"        onclick="setHorizon(10, this)">10 yrs</button>
+      </div>
+
+      <div class="section-title">Intervention</div>
+
+      <div class="param">
+        <label>CVD Mortality Reduction <span class="val" id="v-mortred">20 %</span></label>
+        <input type="range" id="inp-mortred" min="0" max="60" step="1" value="20"
+               oninput="updateSlider('mortred', this.value)">
+        <div class="hint">Relative reduction in CVD-attributable deaths</div>
+      </div>
+
+      <button class="btn-reset" onclick="resetDefaults()">↺ Reset to defaults</button>
+    </div>
+  </aside>
+
+  <!-- RIGHT: outputs -->
+  <main>
+
+    <!-- KPI strip -->
+    <div class="kpi-strip">
+      <div class="kpi">
+        <div class="label">CVD Events (Baseline)</div>
+        <div class="value" id="k-events">—</div>
+        <div class="sub" id="k-events-sub">over horizon</div>
+      </div>
+      <div class="kpi green">
+        <div class="label">Deaths Avoided</div>
+        <div class="value" id="k-deaths">—</div>
+        <div class="sub">with intervention</div>
+        <div class="delta" id="k-deaths-pct"></div>
+      </div>
+      <div class="kpi">
+        <div class="label">Life-years Preserved</div>
+        <div class="value" id="k-ly">—</div>
+        <div class="sub">population total</div>
+      </div>
+      <div class="kpi green">
+        <div class="label">Life Expectancy Gain</div>
+        <div class="value" id="k-sg">—</div>
+        <div class="sub">per person</div>
+        <div class="delta" id="k-sg-note"></div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card">
+      <div class="chart-tabs">
+        <button class="tab active" onclick="showTab('survivors', this)">Survivors over time</button>
+        <button class="tab"        onclick="showTab('incidence', this)">Cumulative CVD Events</button>
+      </div>
+      <div id="chart-area"></div>
+    </div>
+
+    <!-- Micro / Macro -->
+    <div class="mm-grid">
+      <div class="mm-card micro">
+        <span class="mm-tag">Micro</span>
+        <div class="mm-value"  id="mm-micro-val">—</div>
+        <div class="mm-label">Individual survival probability gain</div>
+        <div class="mm-detail" id="mm-micro-detail"></div>
+      </div>
+      <div class="mm-card macro">
+        <span class="mm-tag">Macro</span>
+        <div class="mm-value"  id="mm-macro-val">—</div>
+        <div class="mm-label">Population life-years preserved</div>
+        <div class="mm-detail" id="mm-macro-detail"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  CVD Population Health Impact Simulator · Mortality data: Human Mortality Database (Sweden &amp; Finland 2023) ·
+  CVD incidence: Swedish disease registry 1997 (illustrative) · For research and demonstration use only
+</footer>
+
+<script>
+// ── Embedded life table data: qx (annual probability of death) ─────────────────
+// Source: Human Mortality Database, period life tables, 2023
+
+const LIFE_TABLES = {
+  SWE: {
+    M: {30:0.00063,31:0.00063,32:0.00078,33:0.00053,34:0.00078,35:0.00073,36:0.00076,
+        37:0.00066,38:0.00094,39:0.00104,40:0.00081,41:0.00087,42:0.00090,43:0.00119,
+        44:0.00106,45:0.00105,46:0.00121,47:0.00162,48:0.00165,49:0.00169,50:0.00176,
+        51:0.00185,52:0.00224,53:0.00244,54:0.00274,55:0.00326,56:0.00359,57:0.00413,
+        58:0.00393,59:0.00488,60:0.00522,61:0.00587,62:0.00667,63:0.00776,64:0.00801,
+        65:0.00947,66:0.01102,67:0.01092,68:0.01261,69:0.01399,70:0.01590,71:0.01801,
+        72:0.01925,73:0.02003,74:0.02389,75:0.02575,76:0.02889,77:0.03165,78:0.03795,
+        79:0.04036,80:0.04563,81:0.05178,82:0.05825,83:0.06719,84:0.07685,85:0.08570,
+        86:0.09984,87:0.11398,88:0.12931,89:0.15042,90:0.16308},
+    F: {30:0.00030,31:0.00031,32:0.00043,33:0.00034,34:0.00042,35:0.00054,36:0.00034,
+        37:0.00039,38:0.00045,39:0.00056,40:0.00049,41:0.00065,42:0.00066,43:0.00071,
+        44:0.00055,45:0.00068,46:0.00074,47:0.00094,48:0.00106,49:0.00132,50:0.00138,
+        51:0.00164,52:0.00166,53:0.00189,54:0.00194,55:0.00180,56:0.00238,57:0.00279,
+        58:0.00323,59:0.00357,60:0.00339,61:0.00414,62:0.00374,63:0.00511,64:0.00558,
+        65:0.00649,66:0.00650,67:0.00842,68:0.00864,69:0.00951,70:0.00995,71:0.01106,
+        72:0.01318,73:0.01371,74:0.01648,75:0.01860,76:0.01998,77:0.02414,78:0.02551,
+        79:0.02984,80:0.03175,81:0.03648,82:0.04281,83:0.04921,84:0.05585,85:0.06373,
+        86:0.07216,87:0.08474,88:0.09332,89:0.10755,90:0.12509}
+  },
+  FIN: {
+    M: {30:0.00077,31:0.00069,32:0.00100,33:0.00084,34:0.00117,35:0.00066,36:0.00084,
+        37:0.00131,38:0.00083,39:0.00189,40:0.00130,41:0.00155,42:0.00150,43:0.00151,
+        44:0.00209,45:0.00195,46:0.00213,47:0.00207,48:0.00225,49:0.00264,50:0.00302,
+        51:0.00362,52:0.00388,53:0.00434,54:0.00443,55:0.00472,56:0.00589,57:0.00616,
+        58:0.00629,59:0.00689,60:0.00862,61:0.00872,62:0.01010,63:0.01013,64:0.01153,
+        65:0.01291,66:0.01401,67:0.01605,68:0.01705,69:0.01734,70:0.01927,71:0.02184,
+        72:0.02386,73:0.02861,74:0.02965,75:0.03288,76:0.03685,77:0.03945,78:0.04615,
+        79:0.04804,80:0.05779,81:0.06373,82:0.07041,83:0.07688,84:0.08725,85:0.10182,
+        86:0.11608,87:0.12464,88:0.14371,89:0.16496,90:0.17807},
+    F: {30:0.00033,31:0.00027,32:0.00036,33:0.00060,34:0.00047,35:0.00051,36:0.00047,
+        37:0.00054,38:0.00058,39:0.00063,40:0.00066,41:0.00070,42:0.00064,43:0.00102,
+        44:0.00111,45:0.00082,46:0.00087,47:0.00108,48:0.00127,49:0.00140,50:0.00116,
+        51:0.00172,52:0.00252,53:0.00204,54:0.00215,55:0.00262,56:0.00278,57:0.00316,
+        58:0.00305,59:0.00356,60:0.00413,61:0.00441,62:0.00514,63:0.00548,64:0.00535,
+        65:0.00675,66:0.00840,67:0.00793,68:0.00860,69:0.00961,70:0.01069,71:0.01208,
+        72:0.01281,73:0.01462,74:0.01627,75:0.01943,76:0.02036,77:0.02411,78:0.02615,
+        79:0.03123,80:0.03470,81:0.03843,82:0.04466,83:0.05207,84:0.05903,85:0.06699,
+        86:0.07422,87:0.08836,88:0.10278,89:0.11411,90:0.13625}
+  }
+};
+
+// ── Embedded CVD incidence data: IHD (S002) per 100,000 person-years ──────────
+// Source: Swedish disease registry 1997 — used as proxy for both SWE and FIN
+const CVD_IHD_M = [[30,88.63],[35,143.77],[40,247.08],[45,368.04],[50,655.50],
+                   [55,1273.65],[60,2328.11],[65,4450.40],[70,7207.98],[75,10911.80],[80,17086.26]];
+const CVD_IHD_F = [[30,76.73],[35,141.58],[40,230.50],[45,439.08],[50,898.88],
+                   [55,1371.31],[60,2308.11],[65,3825.08],[70,6108.66],[75,8685.12],[80,12224.54]];
+
+// IHD case fatality rate — fraction of IHD events that result in death
+const CFR = 0.10;
+
+// ── Model parameters ──────────────────────────────────────────────────────────
+const PARAMS = {
+  country: 'SWE',
+  popSize: 100000,
+  ageBand: 50,
+  female:  50,
+  horizon: 5,
+  mortred: 20,
+};
+
+// ── Data helpers ──────────────────────────────────────────────────────────────
+function getQx(country, sex, age) {
+  const a = Math.min(Math.max(Math.round(age), 30), 90);
+  const tbl = LIFE_TABLES[country][sex];
+  return tbl[a] ?? tbl[90];
+}
+
+function getCVDRate(sex, age) {
+  const tbl = sex === 'M' ? CVD_IHD_M : CVD_IHD_F;
+  const clamp = Math.min(Math.max(age, 30), 80);
+  const lo = [...tbl].reverse().find(([a]) => a <= clamp) ?? tbl[0];
+  const hi = tbl.find(([a]) => a >= clamp) ?? tbl[tbl.length - 1];
+  if (lo[0] === hi[0]) return lo[1];
+  return lo[1] + (hi[1] - lo[1]) * (clamp - lo[0]) / (hi[0] - lo[0]);
+}
+
+function blendedQx(country, female, age) {
+  const f = female / 100;
+  return getQx(country, 'M', age) * (1 - f) + getQx(country, 'F', age) * f;
+}
+
+function blendedCVDRate(female, age) {
+  const f = female / 100;
+  return getCVDRate('M', age) * (1 - f) + getCVDRate('F', age) * f;
+}
+
+// ── Simulation engine (pure function) ─────────────────────────────────────────
+function simulate({ country, popSize, ageBand, female, horizon, mortred }) {
+  const startAge = ageBand + 2; // midpoint of 5-year band
+  const eff = mortred / 100;
+
+  const base = { survivors: [popSize], cvdEvents: [], deaths: [] };
+  const intv = { survivors: [popSize], cvdEvents: [], deaths: [] };
+
+  for (let t = 0; t < horizon; t++) {
+    const age     = Math.min(startAge + t, 90);
+    const qx      = blendedQx(country, female, age);
+    const cvdRate = blendedCVDRate(female, age);
+    // fraction of all-cause deaths attributable to CVD (capped at 90%)
+    const cvdFrac = Math.min((cvdRate / 100000 * CFR) / qx, 0.90);
+
+    // baseline
+    const bN = base.survivors[t];
+    base.cvdEvents.push(bN * cvdRate / 100000);
+    const bDeaths = bN * qx;
+    base.deaths.push(bDeaths);
+    base.survivors.push(bN - bDeaths);
+
+    // intervention: CVD events reduced, CVD deaths reduced by eff
+    const iN = intv.survivors[t];
+    intv.cvdEvents.push(iN * cvdRate / 100000 * (1 - eff));
+    const iDeaths = iN * qx * (1 - cvdFrac * eff);
+    intv.deaths.push(iDeaths);
+    intv.survivors.push(iN - iDeaths);
+  }
+
+  return { base, intv };
+}
+
+// ── Formatting ────────────────────────────────────────────────────────────────
+function fmtInt(n) { return Math.round(n).toLocaleString('en-US'); }
+function fmt(n, d = 2) { return (+n).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+function fmtK(n) {
+  const v = Math.abs(n), s = n < 0 ? '−' : '';
+  if (v >= 1e6) return s + fmt(v / 1e6, 2) + 'M';
+  if (v >= 1e3) return s + fmt(v / 1e3,  1) + 'k';
+  return s + fmtInt(v);
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentTab = 'survivors';
+let lastResults = null;
+
+// ── Main recalc ───────────────────────────────────────────────────────────────
+function recalc() {
+  PARAMS.country = document.getElementById('inp-country').value;
+  PARAMS.popSize = Math.max(+document.getElementById('inp-popsize').value || 100000, 1);
+  PARAMS.ageBand = +document.getElementById('inp-ageband').value;
+
+  const { base, intv } = simulate(PARAMS);
+  lastResults = { base, intv };
+
+  const H = PARAMS.horizon;
+  const N = PARAMS.popSize;
+  const sum = a => a.reduce((s, v) => s + v, 0);
+
+  const totalCVDBase  = sum(base.cvdEvents);
+  const totalDBase    = sum(base.deaths);
+  const totalDInt     = sum(intv.deaths);
+  const deathsAvoided = totalDBase - totalDInt;
+  const lyBase        = sum(base.survivors.slice(1));
+  const lyInt         = sum(intv.survivors.slice(1));
+  const lyPreserved   = lyInt - lyBase;
+  const dSurv         = intv.survivors[H] - base.survivors[H];
+  const survGainPct   = dSurv / N * 100;
+
+  // KPIs
+  document.getElementById('k-events').textContent     = fmtK(totalCVDBase);
+  document.getElementById('k-events-sub').textContent = `over ${H} yr${H > 1 ? 's' : ''}`;
+  document.getElementById('k-deaths').textContent     = fmtK(deathsAvoided);
+  document.getElementById('k-deaths-pct').innerHTML   =
+    `<span class="pos">▼ ${fmt(deathsAvoided / totalDBase * 100, 1)}% vs baseline</span>`;
+  document.getElementById('k-ly').textContent         = fmtK(lyPreserved);
+  const leGainYrs = lyPreserved / N;
+  const leDisplay = leGainYrs >= 1
+    ? '+' + fmt(leGainYrs, 2) + ' yrs'
+    : '+' + fmt(leGainYrs * 12, 1) + ' mo';
+  document.getElementById('k-sg').textContent    = leDisplay;
+  document.getElementById('k-sg-note').innerHTML =
+    `<span class="pos">+${fmtInt(dSurv)}</span> additional survivors`;
+
+  // Micro / Macro
+  document.getElementById('mm-micro-val').textContent  = '+' + fmt(survGainPct, 2) + ' pp';
+  document.getElementById('mm-micro-detail').textContent =
+    `A person in this cohort has a ${fmt(survGainPct, 2)} percentage-point higher probability ` +
+    `of surviving the ${H}-year horizon with the intervention than without it.`;
+
+  document.getElementById('mm-macro-val').textContent  = fmtK(lyPreserved);
+  document.getElementById('mm-macro-detail').textContent =
+    `${fmtInt(Math.round(lyPreserved))} life-years preserved across a population of ` +
+    `${fmtInt(N)} over ${H} year${H > 1 ? 's' : ''} — equivalent to ` +
+    `${fmt(lyPreserved / N, 2)} life-years per person.`;
+
+  renderChart(currentTab, base, intv);
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+function showTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = tab;
+  if (lastResults) renderChart(tab, lastResults.base, lastResults.intv);
+}
+
+function renderChart(tab, base, intv) {
+  const H      = PARAMS.horizon;
+  const layout = {
+    margin: { t: 20, b: 50, l: 65, r: 20 },
+    legend: { orientation: 'h', y: -0.2, font: { size: 11 } },
+    xaxis:  { title: 'Year', tickfont: { size: 11 } },
+    yaxis:  { tickfont: { size: 11 } },
+    plot_bgcolor:  '#fff',
+    paper_bgcolor: '#fff',
+    font: { family: 'Segoe UI, system-ui, sans-serif' },
+  };
+  const cfg = { responsive: true, displayModeBar: false };
+
+  if (tab === 'survivors') {
+    const yrs = Array.from({ length: H + 1 }, (_, i) => i);
+    Plotly.react('chart-area', [
+      { name: 'Baseline', x: yrs, y: base.survivors,
+        type: 'scatter', mode: 'lines', line: { color: '#c0392b', dash: 'dot',   width: 2   } },
+      { name: 'With Intervention', x: yrs, y: intv.survivors,
+        type: 'scatter', mode: 'lines', line: { color: '#1e8449', dash: 'solid', width: 2.5 } },
+    ], { ...layout, yaxis: { ...layout.yaxis, title: 'Survivors' } }, cfg);
+  } else {
+    const yrs = Array.from({ length: H }, (_, i) => i + 1);
+    let cumBase = 0, cumInt = 0;
+    const yCumBase = base.cvdEvents.map(v => (cumBase += v));
+    const yCumInt  = intv.cvdEvents.map(v => (cumInt  += v));
+    Plotly.react('chart-area', [
+      { name: 'Baseline', x: yrs, y: yCumBase,
+        type: 'scatter', mode: 'lines', line: { color: '#c0392b', dash: 'dot',   width: 2   } },
+      { name: 'With Intervention', x: yrs, y: yCumInt,
+        type: 'scatter', mode: 'lines', line: { color: '#1e8449', dash: 'solid', width: 2.5 } },
+    ], { ...layout, yaxis: { ...layout.yaxis, title: 'Cumulative CVD Events' } }, cfg);
+  }
+}
+
+// ── Control handlers ──────────────────────────────────────────────────────────
+function updateSlider(key, raw) {
+  const v = parseFloat(raw);
+  PARAMS[key] = v;
+  document.getElementById('v-' + key).textContent = v + ' %';
+  recalc();
+}
+
+function setHorizon(h, el) {
+  document.querySelectorAll('.horizon-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  PARAMS.horizon = h;
+  recalc();
+}
+
+function resetDefaults() {
+  document.getElementById('inp-country').value = 'SWE';
+  document.getElementById('inp-popsize').value = 100000;
+  document.getElementById('inp-ageband').value = 50;
+  document.getElementById('inp-female').value  = 50;
+  document.getElementById('inp-mortred').value = 20;
+  document.getElementById('v-female').textContent  = '50 %';
+  document.getElementById('v-mortred').textContent = '20 %';
+  document.querySelectorAll('.horizon-btn').forEach((b, i) => b.classList.toggle('active', i === 1));
+  Object.assign(PARAMS, { country:'SWE', popSize:100000, ageBand:50, female:50, horizon:5, mortred:20 });
+  recalc();
+}
+
+// Initial render
+recalc();
+</script>
+</body>
+</html>

@@ -39,7 +39,3 @@ This version uses embedded Swedish and Finnish life table data (2022) and CVD in
 - Plotly.js loaded from CDN (internet connection required for charts)
 - All simulation logic runs in the browser via inline JavaScript
 - Life table data for Sweden and Finland (ages 0–110) embedded directly in the HTML
-
-## See also
-
-- [`../heor-calculator/`](../heor-calculator/) — a more detailed HEOR calculator with cost-effectiveness outputs (cost per QALY, net monetary benefit), designed for health economist audiences

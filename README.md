@@ -2,7 +2,7 @@
 
 > **Demo prototype** — illustrative and discussion purposes only. Not intended for clinical or commercial decision-making.
 
-Based on the original work by [@michaelReb](https://github.com/michaelReb/elevateHealth).
+Based on the original work by the elevateHealth CVD team, at this GitHub repo: [michaelReb/elevateHealth](https://github.com/michaelReb/elevateHealth).
 
 A single-page interactive simulator for communicating the population-level impact of a CVD intervention to non-technical stakeholders. Designed to be run in a browser during presentations — no specialist knowledge required to operate it.
 
